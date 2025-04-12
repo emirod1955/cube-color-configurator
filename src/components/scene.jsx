@@ -1,66 +1,203 @@
+import React, { useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, useGLTF } from "@react-three/drei";
-import { useState, useEffect } from "react";
+import { OrbitControls } from "@react-three/drei";
+import { Model } from "./Model";
+import { StaticModel } from "./StaticModel";
 
-function Model({ color1, color2 }) {
-  const { scene: scene1 } = useGLTF("/models/cube1.glb");
-  const { scene: scene2 } = useGLTF("/models/cube2.glb");
-
-  useEffect(() => {
-    if (scene1 && scene2) {
-
-      scene1.traverse((child) => {
-        if (child.isMesh) {
-          child.material.color.set(color1);
-          child.scale.set(1, 1, 1); // Make sure it's not too small
-        }
-      });
-
-      scene2.traverse((child) => {
-        if (child.isMesh) {
-          child.material.color.set(color2);
-          child.scale.set(1, 1, 1);
-        }
-      });
-    }
-  }, [color1, color2, scene1, scene2]);
-
-  return (
-    <>
-      <primitive object={scene1} position={[0, 0, 0]} scale={1} />
-      <primitive object={scene2} position={[0, 0, 0]} scale={1} />
-    </>
-  );
-}
+import './App.css';
 
 function Scene() {
-  const [color1, setColor1] = useState("#fcba03");
-  const [color2, setColor2] = useState("#00ff00");
+  const [numPersons, setNumPersons] = useState(1);
+  const [persons, setPersons] = useState([
+    { color: "#ffffff", size: 1, position: [0, 0, 0], name: "Emiliano", gender: "man" },
+  ]);
+  const [selectedPersonIndex, setSelectedPersonIndex] = useState(null);
+
+  const regeneratePositions = () => {
+    setPersons((prevPersons) =>
+      prevPersons.map((person, index) => ({
+        ...person,
+        position: getPosition(index),
+      }))
+    );
+  };
+
+  const handleNumPersonsChange = (e) => {
+    const value = Math.max(1, Math.min(9, parseInt(e.target.value, 10) || 1));
+    setNumPersons(value);
+  
+    setPersons((prevPersons) => {
+      const newPersons = [];
+      for (let i = 0; i < value; i++) {
+        newPersons.push(
+          prevPersons[i]
+            ? { ...prevPersons[i] } // Keep existing person with its position
+            : {
+                color: "#ffffff",
+                size: 1,
+                position: getPosition(i), // Assign a position only to new persons
+                name: `Person ${i + 1}`,
+                gender: "man",
+              }
+        );
+      }
+      return newPersons;
+    });
+  };
+
+  const handleGenderChange = (index, newGender) => {
+    setPersons((prevPersons) => {
+      const updatedPersons = [...prevPersons];
+      updatedPersons[index].gender = newGender;
+      return updatedPersons;
+    });
+  };
+
+  const handleSizeChange = (index, newSize) => {
+    setPersons((prevPersons) => {
+      const updatedPersons = [...prevPersons];
+      updatedPersons[index].size = newSize;
+      return updatedPersons;
+    });
+  };
+  const getPosition = (index) => {
+    const gridSize = 3; // Fixed number of columns in the grid
+    const spacing = 3; // Base spacing between persons in the grid
+    const randomOffset = () => (Math.random() - 0.5) * 1.5; // Random offset for natural spacing
+  
+    const row = Math.floor(index / gridSize); // Calculate the row index
+    const col = index % gridSize; // Calculate the column index
+  
+    const x = col * spacing + randomOffset(); // Add randomness to x position
+    const z = row * spacing + randomOffset(); // Add randomness to z position
+    const y = 0; // Keep persons on the ground level
+  
+    return [x, y, z];
+  };
 
   return (
-    <div>
-      <Canvas camera={{ position: [20, 40, 60], fov: 50 }} style={{ width: "100%", height: "100vh" }}
->
-        {/* Lights */}
-        <ambientLight intensity={1} />
-        <directionalLight position={[3, 5, 2]} intensity={2} />
+    <div style={{ display: "flex", flexDirection: "row", height: "100vh" }}>
+      {/* 3D Scene */}
+      <div style={{ flex: 2 }}>
+        <Canvas camera={{ position: [40, 40, 40], fov: 30 }} style={{ width: "100%", height: "100%" }}>
+          <ambientLight intensity={1} />
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[10, 10, 10]} intensity={1} />
+          <StaticModel path="/models/base.glb" position={[0, -2, 0]} />
+          {persons.map((person, i) => (
+  <Model
+    key={i}
+    index={i}
+    position={person.position}
+    color={person.color}
+    size={person.size}
+    name={person.name}
+    gender={person.gender}
+    onClick={() => setSelectedPersonIndex(i)}
+    onPointerOver={(e) => {
+      e.stopPropagation();
+      document.body.style.cursor = "pointer";
+    }}
+    onPointerOut={(e) => {
+      e.stopPropagation();
+      document.body.style.cursor = "default";
+    }}
+  />
+))}
+          <OrbitControls />
+        </Canvas>
+      </div>
 
-        {/* Models */}
-        <Model color1={color1} color2={color2} />
+      {/* Configuration Controls */}
+      <div style={{ flex: 1, padding: "20px", overflowY: "auto" }}>
+        <h2>Configure Persons</h2>
+        <label>Number of Persons: </label>
+        <input
+          type="number"
+          min="1"
+          max="9"
+          value={numPersons}
+          onChange={handleNumPersonsChange}
+          style={{ marginBottom: "20px", display: "block" }}
+        />
 
-        {/* Controls */}
-        <OrbitControls />
-      </Canvas>
+        <button onClick={regeneratePositions} style={{ marginBottom: "20px", display: "block" }}>
+          Regenerate Positions
+        </button>
 
-      {/* Color Pickers */}
-      <div style={{ position: "absolute", top: "10px", left: "10px" }}>
-        <label>Cube 1: </label>
-        <input type="color" value={color1} onChange={(e) => setColor1(e.target.value)} />
-        <label>Cube 2: </label>
-        <input type="color" value={color2} onChange={(e) => setColor2(e.target.value)} />
+        {selectedPersonIndex !== null && (
+          <div style={{ marginBottom: "20px", border: "1px solid #ccc", padding: "10px" }}>
+            <h3>Person {selectedPersonIndex + 1}</h3>
+
+            {/* Name control */}
+            <label>Name: </label>
+            <input
+              type="text"
+              value={persons[selectedPersonIndex].name}
+              onChange={(e) => {
+                const newName = e.target.value;
+                setPersons((prevPersons) => {
+                  const updatedPersons = [...prevPersons];
+                  updatedPersons[selectedPersonIndex].name = newName;
+                  return updatedPersons;
+                });
+              }}
+              placeholder="Enter name"
+              style={{ display: "block", marginBottom: "10px" }}
+            />
+
+            {/* Gender Selection */}
+            <label>Gender: </label>
+            <div style={{ marginBottom: "10px" }}>
+              <button
+                onClick={() => handleGenderChange(selectedPersonIndex, "man")}
+                style={{
+                  marginRight: "10px",
+                  backgroundColor: persons[selectedPersonIndex].gender === "man" ? "#007bff" : "#ccc",
+                  color: "white",
+                }}
+              >
+                Man
+              </button>
+              <button
+                onClick={() => handleGenderChange(selectedPersonIndex, "woman")}
+                style={{
+                  backgroundColor: persons[selectedPersonIndex].gender === "woman" ? "#007bff" : "#ccc",
+                  color: "white",
+                }}
+              >
+                Woman
+              </button>
+            </div>
+
+            {/* Color control */}
+            <label>Color: </label>
+            <input
+              type="color"
+              value={persons[selectedPersonIndex].color}
+              onChange={(e) => {
+                const newColor = e.target.value;
+                setPersons((prevPersons) => {
+                  const updatedPersons = [...prevPersons];
+                  updatedPersons[selectedPersonIndex].color = newColor;
+                  return updatedPersons;
+                });
+              }}
+              style={{ display: "block", marginBottom: "10px" }}
+            />
+
+            {/* Size control */}
+            <label>Size: </label>
+            <div>
+              <button onClick={() => handleSizeChange(selectedPersonIndex, 0.8)}>Small</button>
+              <button onClick={() => handleSizeChange(selectedPersonIndex, 1)}>Medium</button>
+              <button onClick={() => handleSizeChange(selectedPersonIndex, 1.2)}>Large</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-export {Scene}
+export { Scene };

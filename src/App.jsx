@@ -1,11 +1,13 @@
-import { Scene } from "./components/scene";
+// App.jsx
+import React from "react";
+import { Scene } from "./components/scene";  // Import the Scene component
 
 function App() {
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
+    <div>
       <Scene />
     </div>
   );
 }
 
-export { App };
+export  {App};
