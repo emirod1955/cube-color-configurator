@@ -85,19 +85,19 @@ function Scene() {
           <directionalLight position={[10, 10, 10]} intensity={1} />
           <StaticModel path="/models/base.glb" position={[0, -2, 0]} />
           {persons.map((person, i) => (
-  <Model
-    key={i}
-    index={i}
-    position={person.position}
-    color={person.color}
-    size={person.size}
-    name={person.name}
-    gender={person.gender}
-    onClick={() => setSelectedPersonIndex(i)}
-    onPointerOver={(e) => {
-      e.stopPropagation();
-      document.body.style.cursor = "pointer";
-    }}
+            <Model
+              key={i}
+              index={i}
+              position={person.position}
+              color={person.color}
+              size={person.size}
+              name={person.name}
+              gender={person.gender}
+              onClick={() => setSelectedPersonIndex(i)}
+              onPointerOver={(e) => {
+                e.stopPropagation();
+                document.body.style.cursor = "pointer";
+          }}
     onPointerOut={(e) => {
       e.stopPropagation();
       document.body.style.cursor = "default";
