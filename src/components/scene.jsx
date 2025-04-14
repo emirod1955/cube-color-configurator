@@ -11,16 +11,9 @@ function Scene() {
   const [persons, setPersons] = useState([
     { color: "#ffffff", size: 1, position: [0, 0, 0], name: "Emiliano", gender: "man" },
   ]);
-  const [selectedPersonIndex, setSelectedPersonIndex] = useState(null);
 
-  const regeneratePositions = () => {
-    setPersons((prevPersons) =>
-      prevPersons.map((person, index) => ({
-        ...person,
-        position: getPosition(index),
-      }))
-    );
-  };
+  const [lastDraggedPersonIndex, setLastDraggedPersonIndex] = useState(null); // New state
+  const [controlsEnabled, setControlsEnabled] = useState(true);
 
   const handleNumPersonsChange = (e) => {
     const value = Math.max(1, Math.min(9, parseInt(e.target.value, 10) || 1));
@@ -31,11 +24,11 @@ function Scene() {
       for (let i = 0; i < value; i++) {
         newPersons.push(
           prevPersons[i]
-            ? { ...prevPersons[i] } // Keep existing person with its position
+            ? { ...prevPersons[i] }
             : {
                 color: "#ffffff",
                 size: 1,
-                position: getPosition(i), // Assign a position only to new persons
+                position: getPosition(i),
                 name: `Person ${i + 1}`,
                 gender: "man",
               }
@@ -60,24 +53,33 @@ function Scene() {
       return updatedPersons;
     });
   };
+
   const getPosition = (index) => {
-    const gridSize = 3; // Fixed number of columns in the grid
-    const spacing = 3; // Base spacing between persons in the grid
-    const randomOffset = () => (Math.random() - 0.5) * 1.5; // Random offset for natural spacing
+    const gridSize = 3;
+    const spacing = 3;
+    const randomOffset = () => (Math.random() - 0.5) * 1.5;
   
-    const row = Math.floor(index / gridSize); // Calculate the row index
-    const col = index % gridSize; // Calculate the column index
+    const row = Math.floor(index / gridSize);
+    const col = index % gridSize;
   
-    const x = col * spacing + randomOffset(); // Add randomness to x position
-    const z = row * spacing + randomOffset(); // Add randomness to z position
-    const y = 0; // Keep persons on the ground level
+    const x = col * spacing + randomOffset();
+    const z = row * spacing + randomOffset();
+    const y = 0;
   
     return [x, y, z];
   };
 
+  const handleDragStart = () => {
+    setControlsEnabled(false);
+  };
+
+  const handleDragEnd = (index) => {
+    setControlsEnabled(true);
+    setLastDraggedPersonIndex(index); // Update last dragged person
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "row", height: "100vh" }}>
-      {/* 3D Scene */}
       <div style={{ flex: 2 }}>
         <Canvas camera={{ position: [40, 40, 40], fov: 30 }} style={{ width: "100%", height: "100%" }}>
           <ambientLight intensity={1} />
@@ -97,18 +99,19 @@ function Scene() {
               onPointerOver={(e) => {
                 e.stopPropagation();
                 document.body.style.cursor = "pointer";
-          }}
-    onPointerOut={(e) => {
-      e.stopPropagation();
-      document.body.style.cursor = "default";
-    }}
-  />
-))}
-          <OrbitControls />
+              }}
+              onPointerOut={(e) => {
+                e.stopPropagation();
+                document.body.style.cursor = "default";
+              }}
+              onDragStart={handleDragStart}
+              onDragEnd={() => handleDragEnd(i)} // Pass index to handler
+            />
+          ))}
+          <OrbitControls enabled={controlsEnabled} />
         </Canvas>
       </div>
 
-      {/* Configuration Controls */}
       <div style={{ flex: 1, padding: "20px", overflowY: "auto" }}>
         <h2>Configure Persons</h2>
         <label>Number of Persons: </label>
@@ -121,24 +124,18 @@ function Scene() {
           style={{ marginBottom: "20px", display: "block" }}
         />
 
-        <button onClick={regeneratePositions} style={{ marginBottom: "20px", display: "block" }}>
-          Regenerate Positions
-        </button>
-
-        {selectedPersonIndex !== null && (
-          <div style={{ marginBottom: "20px", border: "1px solid #ccc", padding: "10px" }}>
-            <h3>Person {selectedPersonIndex + 1}</h3>
-
-            {/* Name control */}
+        {lastDraggedPersonIndex !== null && (
+          <div style={{ marginTop: "20px", border: "1px solid #ccc", padding: "10px" }}>
+            <h3>Last Dragged Person</h3>
             <label>Name: </label>
             <input
               type="text"
-              value={persons[selectedPersonIndex].name}
+              value={persons[lastDraggedPersonIndex].name}
               onChange={(e) => {
                 const newName = e.target.value;
                 setPersons((prevPersons) => {
                   const updatedPersons = [...prevPersons];
-                  updatedPersons[selectedPersonIndex].name = newName;
+                  updatedPersons[lastDraggedPersonIndex].name = newName;
                   return updatedPersons;
                 });
               }}
@@ -146,23 +143,22 @@ function Scene() {
               style={{ display: "block", marginBottom: "10px" }}
             />
 
-            {/* Gender Selection */}
             <label>Gender: </label>
             <div style={{ marginBottom: "10px" }}>
               <button
-                onClick={() => handleGenderChange(selectedPersonIndex, "man")}
+                onClick={() => handleGenderChange(lastDraggedPersonIndex, "man")}
                 style={{
                   marginRight: "10px",
-                  backgroundColor: persons[selectedPersonIndex].gender === "man" ? "#007bff" : "#ccc",
+                  backgroundColor: persons[lastDraggedPersonIndex].gender === "man" ? "#007bff" : "#ccc",
                   color: "white",
                 }}
               >
                 Man
               </button>
               <button
-                onClick={() => handleGenderChange(selectedPersonIndex, "woman")}
+                onClick={() => handleGenderChange(lastDraggedPersonIndex, "woman")}
                 style={{
-                  backgroundColor: persons[selectedPersonIndex].gender === "woman" ? "#007bff" : "#ccc",
+                  backgroundColor: persons[lastDraggedPersonIndex].gender === "woman" ? "#007bff" : "#ccc",
                   color: "white",
                 }}
               >
@@ -170,28 +166,26 @@ function Scene() {
               </button>
             </div>
 
-            {/* Color control */}
             <label>Color: </label>
             <input
               type="color"
-              value={persons[selectedPersonIndex].color}
+              value={persons[lastDraggedPersonIndex].color}
               onChange={(e) => {
                 const newColor = e.target.value;
                 setPersons((prevPersons) => {
                   const updatedPersons = [...prevPersons];
-                  updatedPersons[selectedPersonIndex].color = newColor;
+                  updatedPersons[lastDraggedPersonIndex].color = newColor;
                   return updatedPersons;
                 });
               }}
               style={{ display: "block", marginBottom: "10px" }}
             />
 
-            {/* Size control */}
             <label>Size: </label>
             <div>
-              <button onClick={() => handleSizeChange(selectedPersonIndex, 0.8)}>Small</button>
-              <button onClick={() => handleSizeChange(selectedPersonIndex, 1)}>Medium</button>
-              <button onClick={() => handleSizeChange(selectedPersonIndex, 1.2)}>Large</button>
+              <button onClick={() => handleSizeChange(lastDraggedPersonIndex, 0.8)}>Small</button>
+              <button onClick={() => handleSizeChange(lastDraggedPersonIndex, 1)}>Medium</button>
+              <button onClick={() => handleSizeChange(lastDraggedPersonIndex, 1.2)}>Large</button>
             </div>
           </div>
         )}
