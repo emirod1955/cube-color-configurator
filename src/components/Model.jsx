@@ -1,19 +1,18 @@
-import React, { useMemo, useState } from "react";
-import { useGLTF, Html } from "@react-three/drei";
+import React, { useMemo } from "react";
+import { useGLTF } from "@react-three/drei";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import * as THREE from "three";
 import { useGesture } from "react-use-gesture";
 import { useSpring, a } from "@react-spring/three";
 import { useThree } from "@react-three/fiber";
 
-const Model = ({ index, position, color, size, name, gender, onClick, onDragStart, onDragEnd }) => {
+const Model = ({ position, color, size, gender, onClick, onDragStart, onDragEnd }) => {
   const { scene: bodyScene } = useGLTF(
     gender === "man" ? "/models/body_man.glb" : "/models/body_woman.glb"
   );
   const { scene: headScene } = useGLTF("/models/head.glb");
 
   const { camera, gl } = useThree(); // Access the camera and renderer
-  const [isHovered, setIsHovered] = useState(false);
 
   // Memoize the model to prevent reloading on every render
   const person = useMemo(() => {
@@ -82,12 +81,10 @@ const Model = ({ index, position, color, size, name, gender, onClick, onDragStar
       onClick={onClick}
       onPointerOver={(e) => {
         e.stopPropagation();
-        setIsHovered(true);
         document.body.style.cursor = "pointer"; // Change cursor to pointer
       }}
       onPointerOut={(e) => {
         e.stopPropagation();
-        setIsHovered(false);
         document.body.style.cursor = "default"; // Reset cursor to default
       }}
     >
