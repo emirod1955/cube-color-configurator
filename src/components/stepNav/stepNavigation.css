@@ -1,0 +1,33 @@
+.navNext{
+    border: none;
+    cursor: pointer;
+    padding: .7rem 4rem;
+    border-radius: .5rem;
+    background-color: #B3AA88;
+    color: #fff;
+}
+
+.navBack{
+    border: none;
+    cursor: pointer;
+    padding: .7rem 3rem;
+    border-radius: .5rem;
+    background-color: #F9F8FB;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.navBack img{
+    width: 2rem;
+    opacity: 60%;
+}
+
+.navBack p{
+    opacity: 60%;
+}
+
+.stepNavButtons{
+    display: flex;
+    gap: 1rem;
+}

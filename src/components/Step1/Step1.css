@@ -1,0 +1,64 @@
+.personInput img{
+    width: 2rem;
+    opacity: 60%;
+}
+
+.personInput{
+    display: flex;
+}
+
+.personInput input{
+    width: 10rem;
+    padding-left: 1rem;
+    border: none;
+}
+
+.personInput button{
+    border: none;
+    background-color: #fafafa;
+    padding: .5rem 1rem;
+}
+
+#secondButton{
+    border-radius: 0 0.5rem .5rem 0;
+}
+
+.personInput button:hover{
+    cursor: pointer;
+    background-color: #f4f4f4;
+}
+
+.personInput .line{
+    width: 1px;
+    background-color: #d9d9d9;
+}
+
+.personInput{
+    border: 1px solid #d9d9d9;
+    border-radius: .5rem;
+    width: min-content;
+}
+
+.step1{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.step1Blocks{
+    display: flex;
+    flex-direction: column;
+    gap: 7rem;
+}
+
+.step1Content{
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.step1NavBt{
+    display: flex;
+    justify-content: flex-end;
+}
