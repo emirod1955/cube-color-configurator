@@ -6,33 +6,10 @@ export const FormProvider = ({ children }) => {
   const [step, setStep] = useState(1);
   const [numPersons, setNumPersons] = useState(1);
   const [persons, setPersons] = useState([
-      { color: "#ffffff", size: 1, position: [0, 0, 0], name: "Emiliano", gender: "man" },
+      { color: "#ffffff", size: 1, position: [0, 0, 0], name: "", gender: "man" },
     ]);
   const [lastDraggedPersonIndex, setLastDraggedPersonIndex] = useState(null); // New state
-  
-  // const handleNumPersonsChange = (e) => {
-  //   const value = Math.max(1, Math.min(9, parseInt(e.target.value, 10) || 1));
-  //   setNumPersons(value);
-  
-  //   setPersons((prevPersons) => {
-  //     const newPersons = [];
-  //     for (let i = 0; i < value; i++) {
-  //       newPersons.push(
-  //         prevPersons[i]
-  //           ? { ...prevPersons[i] }
-  //           : {
-  //               color: "#ffffff",
-  //               size: 1,
-  //               position: getPosition(i),
-  //               name: `Person ${i + 1}`,
-  //               gender: "man",
-  //             }
-  //       );
-  //       setLastDraggedPersonIndex(i); // Update last dragged person index
-  //     }
-  //     return newPersons;  
-  //   });
-  // };
+
 
   const handleNumPersonsChange = (num) => {
     const value = Math.max(1, Math.min(9, parseInt(num, 10) || 1));
@@ -48,8 +25,9 @@ export const FormProvider = ({ children }) => {
                 color: "#ffffff",
                 size: 1,
                 position: getPosition(i),
-                name: `Person ${i + 1}`,
+                name: "",
                 gender: "man",
+                key: i + 1
               }
         );
         setLastDraggedPersonIndex(i); // Update last dragged person index
@@ -70,6 +48,22 @@ export const FormProvider = ({ children }) => {
   
     return [x, y, z];
     
+  };
+
+  const handleGenderChange = (index, newGender) => {
+    setPersons((prevPersons) => {
+      const updatedPersons = [...prevPersons];
+      updatedPersons[index].gender = newGender;
+      return updatedPersons;
+    });
+  };
+
+  const handleSizeChange = (index, newSize) => {
+    setPersons((prevPersons) => {
+      const updatedPersons = [...prevPersons];
+      updatedPersons[index].size = newSize;
+      return updatedPersons;
+    });
   };
 
   const nextStep = () => setStep((prev) => prev + 1);
@@ -93,7 +87,9 @@ export const FormProvider = ({ children }) => {
         persons, 
         setPersons, 
         lastDraggedPersonIndex, 
-        setLastDraggedPersonIndex
+        setLastDraggedPersonIndex,
+        handleGenderChange,
+        handleSizeChange
       }}
     >
       {children}

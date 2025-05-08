@@ -1,6 +1,8 @@
 import React from "react";
 import { useForm } from "../context/FormContext";
 
+import { useEffect } from "react";
+
 //import styles
 import './stepNavigation.css'
 
@@ -8,12 +10,7 @@ import './stepNavigation.css'
 import arr from './arr.svg'
 
 function StepNavigation() {
-  const { step, nextStep, prevStep, formData } = useForm();
-
-  const handleSubmit = () => {
-    console.log("Submitted Data:", formData);
-    alert("Form submitted!");
-  };
+  const { step, nextStep, prevStep } = useForm();
 
   return (
     <div className="stepNavButtons">
@@ -22,11 +19,7 @@ function StepNavigation() {
           <img src={arr} alt="arrow" />
           <p>Atras</p>
         </button>}
-      {step < 3 ? (
         <button className="navNext" onClick={nextStep}>Siguiente</button>
-      ) : (
-        <button onClick={handleSubmit}>Submit</button>
-      )}
     </div>
   );
 }

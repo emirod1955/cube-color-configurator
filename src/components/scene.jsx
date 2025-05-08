@@ -11,8 +11,6 @@ import './App.css';
 
 function Scene() {
   const {
-    numPersons, 
-    handleNumPersonsChange, 
     persons, 
     setPersons, 
     lastDraggedPersonIndex, 
@@ -109,7 +107,7 @@ function Scene() {
     <div style={{ display: "flex", flexDirection: "row", height: "100vh" }}>
       <div style={{ flex: 2 }}>
         <Canvas camera={{ position: [40, 40, 40], fov: 30 }} style={{ width: "100%", height: "100%" }}>
-        <ambientLight intensity={1.5} />
+          <ambientLight intensity={1.5} />
           <directionalLight position={[10, 10, 10]} intensity={1} />
           <StaticModel path="/models/base.glb" position={[1.5, -2, -4.5]} />
           {persons.map((person, i) => (
