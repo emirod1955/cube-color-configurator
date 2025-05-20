@@ -1,11 +1,12 @@
 // App.jsx
-import React from "react";
 import { Scene } from "./components/scene";  // Import the Scene component
-
 
 //import steps
 import { Step1 } from "./components/Step1/Step1";
 import { Step2 } from "./components/Step2/Step2";
+import { Step3 } from "./components/Step3/Step3";
+
+import {Progress} from "./components/Progress/Progress";
 
 //import context
 import { useForm, FormProvider } from "./components/context/FormContext";
@@ -15,7 +16,8 @@ const FormSteps = () => {
 
   let steps = [
     <Step1 key="1" />,
-    <Scene key={10} />
+    <Step3 key={10}/>,
+    <Scene key={11} />
   ];
 
   let arrPersons = []
@@ -44,6 +46,7 @@ function App() {
 
   return (
     <FormProvider>
+      <Progress/>
       <FormSteps />
     </FormProvider>
   );

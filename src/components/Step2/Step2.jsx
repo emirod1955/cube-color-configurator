@@ -1,8 +1,7 @@
 //import react
-import React, { useMemo } from "react";
-import { useGLTF } from "@react-three/drei";
+import { useMemo } from "react";
+import { useGLTF, Center } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber"
-import { Center } from "@react-three/drei";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import * as THREE from "three";
 

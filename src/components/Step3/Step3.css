@@ -1,0 +1,44 @@
+.Step3{
+    display: flex;
+    height: 100vh;
+}
+
+.Step3 canvas{
+    cursor: grab;
+}
+
+.Step3 canvas:active{
+    cursor: grabbing;
+}
+
+.Step3 .rightSide{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.step3InputSide{
+    display: flex;
+    flex-direction: column;
+    gap: 5rem;
+}
+
+.step3InputSide input{
+    border: 1px solid #333;
+    border-radius: .5rem;
+    padding: .5rem;
+    cursor: text;
+    width: 50%;
+}
+
+.step3InputSide .title{
+    display: flex;
+    flex-direction: column;
+}
+
+.step3NavButtons{
+    width: 100%;
+    display: flex;
+    justify-content: end;
+}

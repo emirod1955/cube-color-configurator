@@ -1,12 +1,13 @@
-import React, { useState, useMemo } from "react";
+import { useState} from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Text } from "@react-three/drei"; // Import the Text component
+import { OrbitControls } from "@react-three/drei"; // Import the Text component
 import { Model } from "./Model";
 import { StaticModel } from "./StaticModel";
-import * as THREE from "three";
 
+//import context
 import { useForm } from "./context/FormContext";
 
+//import styles
 import './App.css';
 
 function Scene() {
@@ -14,13 +15,13 @@ function Scene() {
     persons, 
     setPersons, 
     lastDraggedPersonIndex, 
-    setLastDraggedPersonIndex 
+    setLastDraggedPersonIndex,
+    woodText,
+    renderWoodenLetters
   } = useForm();
 
 
   const [controlsEnabled, setControlsEnabled] = useState(true);
-
-  const [woodText, setWoodText] = useState("FAMILY"); // State for the wooden text
 
   const handleGenderChange = (index, newGender) => {
     setPersons((prevPersons) => {
@@ -47,62 +48,6 @@ function Scene() {
     setLastDraggedPersonIndex(index); // Update last dragged person
   };
 
-  const handleWoodTextChange = (e) => {
-    setWoodText(e.target.value.toUpperCase()); // Convert to uppercase for consistency
-  };
-
-  
-  const renderWoodenLetters = (woodText) => {
-    const maxLetters = 15;
-    const letters = woodText.slice(0, maxLetters).split("");
-
-    const radius = 5;
-    const angleOffset = Math.PI / 2; // Start from top
-    const angleStep = THREE.MathUtils.degToRad(24); // 12° per letter
-  
-    const groupRefs = useMemo(
-      () => letters.map(() => React.createRef()),
-      [letters.length]
-    );
-  
-    return letters.map((letter, index) => {
-      const angle = angleOffset - index * angleStep; // Clockwise around circle
-      const x = radius * Math.cos(angle);
-      const z = radius * Math.sin(angle);
-  
-      return (
-        <group
-          key={index}
-          ref={groupRefs[index]}
-          position={[x, 1, z]}
-          onUpdate={(self) => {
-            self.lookAt(0, 1, 0); // Look at center
-            self.rotateY(Math.PI); // Flip to face out
-          }}
-        >
-          <mesh position={[0, 0, 0]}>
-            <boxGeometry args={[2, 2, 0.3]} />
-            <meshStandardMaterial 
-            // color="#e2c095" 
-            //light wood color
-            color="#a49989"
-            />
-          </mesh>
-  
-          <Text
-            position={[0, 0, 0.17]}
-            fontSize={1}
-            color={"#000000"}
-            anchorX="center"
-            anchorY="middle"
-          >
-            {letter}
-          </Text>
-        </group>
-      );
-    });
-  };
-
   return (
     <div style={{ display: "flex", flexDirection: "row", height: "100vh" }}>
       <div style={{ flex: 2 }}>
@@ -126,7 +71,6 @@ function Scene() {
 
           {/* Render the wooden letters */}
           {renderWoodenLetters(woodText)}
-
           <OrbitControls enabled={controlsEnabled} />
         </Canvas>
       </div>
@@ -198,20 +142,6 @@ function Scene() {
             </div>
           </div>
         )}
-
-        {/* Add input for wooden text */}
-        <div style={{ marginTop: "20px", border: "1px solid #ccc", padding: "10px" }}>
-          <h3>Wooden Text</h3>
-          <label>Text: </label>
-          <input
-            type="text"
-            value={woodText}
-            onChange={handleWoodTextChange}
-            placeholder="Enter text"
-            maxLength={13}
-            style={{ display: "block", marginBottom: "10px" }}
-          />
-        </div>
       </div>
     </div>
   );

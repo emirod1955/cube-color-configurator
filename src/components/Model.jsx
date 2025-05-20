@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import * as THREE from "three";
@@ -89,7 +89,7 @@ const Model = ({ position, color, size, gender, onClick, onDragStart, onDragEnd 
       }}
     >
       {/* Render the 3D model */}
-      <primitive object={person} />
+      <primitive object={person}/>
 
     </a.group>
   );
