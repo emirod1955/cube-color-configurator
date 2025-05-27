@@ -9,47 +9,71 @@ export const FormProvider = ({ children }) => {
   const [persons, setPersons] = useState([
       { color: "#ffffff", size: 1, position: [0, 0, 0], name: "", gender: "man" },
     ]);
-  const [lastDraggedPersonIndex, setLastDraggedPersonIndex] = useState(null);
+  const [lastDraggedPersonIndex, setLastDraggedPersonIndex] = useState(0);
   const [woodText, setWoodText] = useState("FAMILY"); // State for the wooden text
 
-  const handleNumPersonsChange = (num) => {
-    const value = Math.max(1, Math.min(9, parseInt(num, 10) || 1));
-    setNumPersons(value);
-  
-    setPersons((prevPersons) => {
-      const newPersons = [];
-      for (let i = 0; i < value; i++) {
-        newPersons.push(
-          prevPersons[i]
-            ? { ...prevPersons[i] }
-            : {
-                color: "#ffffff",
-                size: 1,
-                position: getPosition(i),
-                name: "",
-                gender: "man",
-                key: i + 1
-              }
-        );
-        setLastDraggedPersonIndex(i); // Update last dragged person index
-      }
-      return newPersons;  
-    });
-  };
+  const updatePersonsPositions = (personsArr) => {
+  return getOrderedCirclePositions(personsArr);
+};
 
-  const getPosition = () => {
-    const radius = 5;
-  
-    const r = Math.sqrt(Math.random()) * radius;
-    const angle = Math.random() * Math.PI * 2;
-  
-    const x = Math.cos(angle) * r;
-    const z = Math.sin(angle) * r;
-    const y = 0;
-  
-    return [x, y, z];
-    
-  };
+function getRandomColor() {
+  // Generates a random hex color
+  return "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0");
+}
+
+const handleNumPersonsChange = (num) => {
+  const value = Math.max(1, Math.min(9, parseInt(num, 10) || 1));
+  setNumPersons(value);
+
+  setPersons(() => {
+    const newPersons = [];
+    for (let i = 0; i < value; i++) {
+      newPersons.push({
+        color: getRandomColor(),
+        size: 1,
+        position: [0, 0, 0],
+        name: "",
+        gender: "man",
+        key: i + 1
+      });
+    }
+    setLastDraggedPersonIndex(value - 1);
+    return updatePersonsPositions(newPersons);
+  });
+};
+
+const getOrderedCirclePositions = (
+  persons,
+  maxRadius = 2.5,
+  center = [2, 0, -1],
+  minSpacing = 1  
+) => {
+  const positions = [];
+  for (let i = 0; i < persons.length; i++) {
+    let tries = 0;
+    let pos;
+    do {
+      const angle = Math.random() * 2 * Math.PI;
+      const radius = Math.random() * (maxRadius * 0.7) + maxRadius * 0.3;
+      const x = center[0] + radius * Math.cos(angle);
+      const z = center[2] + radius * Math.sin(angle);
+      const y = center[1];
+      pos = [x, y, z];
+      tries++;
+      // Check distance to all previous positions
+    } while (
+      positions.some(
+        ([px, py, pz]) =>
+          Math.sqrt((pos[0] - px) ** 2 + (pos[2] - pz) ** 2) < minSpacing
+      ) && tries < 100
+    );
+    positions.push(pos);
+  }
+  return persons.map((person, i) => ({
+    ...person,
+    position: positions[i],
+  }));
+};
 
   const handleGenderChange = (index, newGender) => {
     setPersons((prevPersons) => {
@@ -59,13 +83,13 @@ export const FormProvider = ({ children }) => {
     });
   };
 
-  const handleSizeChange = (index, newSize) => {
-    setPersons((prevPersons) => {
-      const updatedPersons = [...prevPersons];
-      updatedPersons[index].size = newSize;
-      return updatedPersons;
-    });
-  };
+const handleSizeChange = (index, newSize) => {
+  setPersons((prevPersons) => {
+    const updatedPersons = [...prevPersons];
+    updatedPersons[index].size = newSize;
+    return updatePersonsPositions(updatedPersons);
+  });
+};
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);

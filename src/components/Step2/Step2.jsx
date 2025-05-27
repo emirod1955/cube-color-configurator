@@ -56,7 +56,7 @@ const Step2 = ({person, index}) => {
             </Canvas>
             <div className="inputsSide">
                 <div className="inputsSideContent">
-                    <div className="inputsSideContent-name">
+                    {/* <div className="inputsSideContent-name">
                         <label>Nombre</label>
                         <input
                             type="text"
@@ -71,7 +71,7 @@ const Step2 = ({person, index}) => {
                             }}
                             placeholder="Ingrese nombre"
                         />
-                    </div>
+                    </div> */}
 
                 <div className="inputsSideContent-gender">
                     <label htmlFor="options">Genero</label>
