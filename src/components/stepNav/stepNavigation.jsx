@@ -1,7 +1,4 @@
-import React from "react";
 import { useForm } from "../context/FormContext";
-
-import { useEffect } from "react";
 
 //import styles
 import './stepNavigation.css'
