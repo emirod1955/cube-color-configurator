@@ -20,11 +20,9 @@ const FormSteps = () => {
     <Scene key={11} />
   ];
 
-  let arrPersons = []
-
-  persons.map((person, index) => 
-    arrPersons.push(<Step2 person={person} index={index}/>)
-  )
+  const arrPersons = persons.map((person, index) => (
+    <Step2 key={index} person={person} index={index} />
+  ));
 
   steps = [
     ...steps.slice(0, 1),

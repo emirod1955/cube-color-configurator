@@ -1,19 +1,16 @@
 import StepNavigation from "../stepNav/stepNavigation";
 import { StaticModel } from "../StaticModel";
+import { WoodenLetters } from "../WoodenLetters";
 import { Center, OrbitControls } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber"
+import { Canvas } from "@react-three/fiber";
 
 import { useForm } from "../context/FormContext";
 
 //import styles
-import "./Step3.css"
+import "./Step3.css";
 
 const Step3 = () => {
-    const {
-        woodText,
-        setWoodText,
-        renderWoodenLetters
-    } = useForm();
+    const { woodText, setWoodText } = useForm();
 
     const handleWoodTextChange = (e) => {
         setWoodText(e.target.value.toUpperCase());
@@ -26,10 +23,9 @@ const Step3 = () => {
                 <directionalLight position={[10, 10, 10]} intensity={1} />
                 <Center>
                     <StaticModel path="/models/base.glb" position={[1.5, -2, -4.5]} />
-                    {renderWoodenLetters(woodText)}
+                    <WoodenLetters woodText={woodText} />
                 </Center>
-                
-                <OrbitControls/>
+                <OrbitControls />
             </Canvas>
             <div className="rightSide">
                 <div className="step3InputSide">
