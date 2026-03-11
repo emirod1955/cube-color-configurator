@@ -1,55 +1,87 @@
-.progress{
-  height: 10vh;
-  display: flex;
-  justify-content: center;
-  position: absolute;
+.progress {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  z-index: 1;
-}
-
-.step {
-  /* Default styles for steps */
-  width: 4rem;
-  height: 4rem;
-  border-radius: 50%;
+  z-index: 100;
+  padding: 2.4rem 6rem;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  justify-content: center;
-  background-color: #bbbbbb;
-  color: white;
-  margin: 0 1rem;
-  cursor: pointer;
+  justify-content: space-between;
 }
 
-.step.active {
-  background-color: #B3AA88;
-  color: white; /* Text color for active step */
+.progress::before {
+  content: 'SANTAJUSTA';
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--text);
 }
 
 .progressBar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  width: 80%;
+  gap: 0;
+}
+
+.progressStep2 {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.progressStep2 p {
+  position: absolute;
+  top: calc(100% + 0.8rem);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+
+.step {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  transition: all var(--transition);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.step:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.step.active {
+  background: var(--text);
+  border-color: var(--text);
+  color: #fff;
 }
 
 .line {
-  flex-grow: 1;
-  height: .2rem;
-  background-color: gray; /* Default line color */
+  width: 5rem;
+  height: 1px;
+  background: var(--border);
+  transition: background var(--transition);
 }
 
 .line.active {
-  background-color: #B3AA88;
-}
-
-.progressStep2 p{
-  position: absolute;
-  top: 6rem;
-  font-size: 1.2rem;
-}
-
-.progressStep2{
-  display: flex;
-  justify-content: center;
+  background: var(--text);
 }

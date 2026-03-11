@@ -1,64 +1,95 @@
-.personInput img{
-    width: 2rem;
-    opacity: 60%;
+.step1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: var(--bg);
 }
 
-.personInput{
-    display: flex;
+.step1Blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 6rem;
+  width: 44rem;
 }
 
-.personInput input{
-    width: 10rem;
-    padding-left: 1rem;
-    border: none;
+.step1Content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
 }
 
-.personInput button{
-    border: none;
-    background-color: #fafafa;
-    padding: .5rem 1rem;
+.step1Content h1 {
+  font-size: 4rem;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text);
 }
 
-#secondButton{
-    border-radius: 0 0.5rem .5rem 0;
+.step1Content p {
+  font-size: 1.4rem;
+  color: var(--text-sub);
+  line-height: 1.7;
+  font-weight: 300;
+  max-width: 32rem;
 }
 
-.personInput button:hover{
-    cursor: pointer;
-    background-color: #f4f4f4;
+.personInput {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-strong);
+  width: min-content;
+  background: var(--bg);
+  margin-top: 1.6rem;
+  transition: border-color var(--transition);
 }
 
-.personInput .line{
-    width: 1px;
-    background-color: #d9d9d9;
+.personInput:focus-within {
+  border-color: var(--text);
 }
 
-.personInput{
-    border: 1px solid #d9d9d9;
-    border-radius: .5rem;
-    width: min-content;
+.personInput input {
+  width: 7rem;
+  padding: 1.2rem 1.6rem;
+  border: none;
+  background: transparent;
+  font-size: 1.8rem;
+  font-weight: 300;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  text-align: center;
+  outline: none;
 }
 
-.step1{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+.personInput .line {
+  width: 1px;
+  height: 4rem;
+  background: var(--border);
+  flex-shrink: 0;
 }
 
-.step1Blocks{
-    display: flex;
-    flex-direction: column;
-    gap: 7rem;
+.personInput button {
+  border: none;
+  background: transparent;
+  padding: 1.2rem 1.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition);
 }
 
-.step1Content{
-    display: flex;
-    flex-direction: column;
-    gap: 3rem;
+.personInput button:hover {
+  background: var(--bg-panel);
 }
 
-.step1NavBt{
-    display: flex;
-    justify-content: flex-end;
+.personInput img {
+  width: 1.6rem;
+  opacity: 0.5;
+}
+
+.step1NavBt {
+  display: flex;
+  justify-content: flex-end;
 }

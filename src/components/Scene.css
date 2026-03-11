@@ -1,16 +1,16 @@
-.scene{
-    display: flex;
-    height: 100vh;
-    width: 100vw;
+.scene {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
 }
 
-.sceneCanvasSide{
-    width: 50%;
+.sceneCanvasSide {
+  width: 50%;
 }
 
-.sceneInputsSide{
-    width: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.sceneInputsSide {
+  width: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

@@ -1,44 +1,82 @@
-.Step3{
-    display: flex;
-    height: 100vh;
+.Step3 {
+  display: flex;
+  height: 100vh;
 }
 
-.Step3 canvas{
-    cursor: grab;
+.Step3 canvas {
+  cursor: grab;
+  flex: 1;
 }
 
-.Step3 canvas:active{
-    cursor: grabbing;
+.Step3 canvas:active {
+  cursor: grabbing;
 }
 
-.Step3 .rightSide{
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.Step3 .rightSide {
+  width: 44rem;
+  min-width: 40rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
-.step3InputSide{
-    display: flex;
-    flex-direction: column;
-    gap: 5rem;
+.step3InputSide {
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+  width: 28rem;
 }
 
-.step3InputSide input{
-    border: 1px solid #333;
-    border-radius: .5rem;
-    padding: .5rem;
-    cursor: text;
-    width: 50%;
+.step3InputSide .title h1 {
+  font-size: 2.6rem;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 1.2rem;
 }
 
-.step3InputSide .title{
-    display: flex;
-    flex-direction: column;
+.step3InputSide .title p {
+  font-size: 1.4rem;
+  color: var(--text-sub);
+  line-height: 1.7;
+  font-weight: 300;
 }
 
-.step3NavButtons{
-    width: 100%;
-    display: flex;
-    justify-content: end;
+.step3InputSide input[type="text"] {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-strong);
+  padding: 1rem 0;
+  font-size: 2.2rem;
+  font-weight: 300;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.step3InputSide input[type="text"]:focus {
+  border-bottom-color: var(--text);
+}
+
+.step3InputSide input[type="text"]::placeholder {
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: none;
+  font-weight: 300;
+  font-size: 1.6rem;
+}
+
+.step3NavButtons {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 2.4rem;
+  border-top: 1px solid var(--border);
 }
