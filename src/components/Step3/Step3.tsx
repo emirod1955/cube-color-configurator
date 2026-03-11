@@ -2,7 +2,7 @@
 
 import React from "react";
 import StepNavigation from "../stepNav/stepNavigation";
-import { StaticModel } from "../StaticModel";
+import { WoodBase } from "../WoodBase";
 import { WoodenLetters } from "../WoodenLetters";
 import { Center, OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
@@ -23,7 +23,7 @@ const Step3 = () => {
         <ambientLight intensity={1.5} />
         <directionalLight position={[10, 10, 10]} intensity={1} />
         <Center>
-          <StaticModel path="/models/base.glb" position={[1.5, -2, -4.5]} />
+          <WoodBase position={[1.5, -2, -4.5]} />
           <WoodenLetters woodText={woodText} />
         </Center>
         <OrbitControls />

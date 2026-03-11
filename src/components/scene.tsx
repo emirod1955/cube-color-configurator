@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
@@ -12,6 +12,7 @@ import { useForm } from "./context/FormContext";
 
 import './App.css';
 import "./Scene.css";
+import "./Step2/Step2.css";
 
 function ShadowLight() {
   const ref = useRef<THREE.DirectionalLight>(null);
@@ -65,6 +66,16 @@ function Scene() {
   const [selectedPersonIndex, setSelectedPersonIndex] = useState(0);
   const [dragBounds, setDragBounds] = useState<{ cx: number; cz: number; r: number } | undefined>(undefined);
 
+  const letterPositions = useMemo(() => {
+    const count = Math.min(woodText.length, 15);
+    const radius = 5;
+    const angleStep = THREE.MathUtils.degToRad(24);
+    return Array.from({ length: count }, (_, i) => {
+      const angle = Math.PI / 2 - i * angleStep;
+      return { x: radius * Math.cos(angle), z: radius * Math.sin(angle) };
+    });
+  }, [woodText]);
+
   const handleDragStart = () => setControlsEnabled(false);
   const handleDragEnd = (index: number) => {
     setControlsEnabled(true);
@@ -103,6 +114,7 @@ function Scene() {
               size={person.size}
               gender={person.gender}
               dragBounds={dragBounds}
+              letterPositions={letterPositions}
               onClick={() => setSelectedPersonIndex(i)}
               onDragStart={handleDragStart}
               onDragEnd={() => handleDragEnd(i)}
@@ -133,20 +145,25 @@ function Scene() {
 
             <div className="inputsSideContent-color">
               <label>Color</label>
-              <div>
-                <input
-                  type="color"
-                  value={persons[selectedPersonIndex].color}
-                  onChange={(e) => {
-                    const newColor = e.target.value;
-                    setPersons((prev) => {
-                      const updated = [...prev];
-                      updated[selectedPersonIndex] = { ...updated[selectedPersonIndex], color: newColor };
-                      return updated;
-                    });
-                  }}
-                />
-                <p>{persons[selectedPersonIndex].color.slice(1).toUpperCase()}</p>
+              <div className="color-swatches">
+                {[
+                  '#F5F5F5', '#222222', '#E63946', '#F4A261',
+                  '#2A9D8F', '#457B9D', '#6A0572', '#F1C40F',
+                  '#8B4513', '#A8D8EA',
+                ].map((c) => (
+                  <button
+                    key={c}
+                    className={`color-swatch${persons[selectedPersonIndex].color === c ? ' selected' : ''}`}
+                    style={{ backgroundColor: c }}
+                    onClick={() =>
+                      setPersons((prev) => {
+                        const updated = [...prev];
+                        updated[selectedPersonIndex] = { ...updated[selectedPersonIndex], color: c };
+                        return updated;
+                      })
+                    }
+                  />
+                ))}
               </div>
             </div>
 

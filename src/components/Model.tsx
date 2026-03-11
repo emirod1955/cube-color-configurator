@@ -6,7 +6,7 @@ import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import * as THREE from "three";
 import { useGesture } from "@use-gesture/react";
 import { useSpring, a } from "@react-spring/three";
-import { useThree } from "@react-three/fiber";
+import { useThree, useFrame } from "@react-three/fiber";
 
 const raycaster = new THREE.Raycaster();
 const plane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
@@ -18,12 +18,13 @@ interface ModelProps {
   size: number;
   gender: "man" | "woman";
   dragBounds?: { cx: number; cz: number; r: number };
+  letterPositions?: { x: number; z: number }[];
   onClick?: () => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
 }
 
-const Model = ({ position, color, size, gender, dragBounds, onClick, onDragStart, onDragEnd }: ModelProps) => {
+const Model = ({ position, color, size, gender, dragBounds, letterPositions, onClick, onDragStart, onDragEnd }: ModelProps) => {
   const { scene: bodyScene } = useGLTF(
     gender === "man" ? "/models/body_man.glb" : "/models/body_woman.glb"
   );
@@ -33,6 +34,7 @@ const Model = ({ position, color, size, gender, dragBounds, onClick, onDragStart
   const [isDragging, setIsDragging] = useState(false);
   const startPosition = useRef<{ x: number; y: number } | null>(null);
   const offset = useRef<[number, number, number]>([0, 0, 0]);
+  const groupRef = useRef<THREE.Group>(null);
   const dragThreshold = 5;
 
   const [spring, setSpring] = useSpring(() => ({
@@ -85,26 +87,57 @@ const Model = ({ position, color, size, gender, dragBounds, onClick, onDragStart
   };
 
   // The figure's foot sits at spring + (FOOT_X, FOOT_Z) regardless of size.
-  // Constrain the foot to the base circle (shrunk by BODY_RADIUS so the
-  // whole figure body stays inside), then back-calculate the spring position.
+  // Constrain the foot to the base circle and repel it from letter tiles.
   const FOOT_X = -4.5;
   const FOOT_Z = 2.0;
-  const BODY_RADIUS = 3.0; // approximate half-width of a figure
+  const BODY_RADIUS = 3.0;     // shrinks base circle inward
+  const LETTER_MIN_DIST = 2; // min distance from foot to any letter center
 
   const clamp = (springX: number, springZ: number) => {
-    if (!dragBounds) return { x: springX, z: springZ };
-    const footX = springX + FOOT_X;
-    const footZ = springZ + FOOT_Z;
-    const dx = footX - dragBounds.cx;
-    const dz = footZ - dragBounds.cz;
-    const dist = Math.sqrt(dx * dx + dz * dz);
-    const effectiveR = dragBounds.r - BODY_RADIUS;
-    if (dist <= effectiveR) return { x: springX, z: springZ };
-    return {
-      x: dragBounds.cx + (dx / dist) * effectiveR - FOOT_X,
-      z: dragBounds.cz + (dz / dist) * effectiveR - FOOT_Z,
-    };
+    let footX = springX + FOOT_X;
+    let footZ = springZ + FOOT_Z;
+
+    // 1. Repel from letter tiles
+    if (letterPositions) {
+      for (const { x: lx, z: lz } of letterPositions) {
+        const ldx = footX - lx;
+        const ldz = footZ - lz;
+        const ldist = Math.sqrt(ldx * ldx + ldz * ldz);
+        if (ldist < LETTER_MIN_DIST && ldist > 0) {
+          footX = lx + (ldx / ldist) * LETTER_MIN_DIST;
+          footZ = lz + (ldz / ldist) * LETTER_MIN_DIST;
+        }
+      }
+    }
+
+    // 2. Clamp to base circle (last so figure always stays on base)
+    if (dragBounds) {
+      const dx = footX - dragBounds.cx;
+      const dz = footZ - dragBounds.cz;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      const effectiveR = dragBounds.r - BODY_RADIUS;
+      if (dist > effectiveR) {
+        footX = dragBounds.cx + (dx / dist) * effectiveR;
+        footZ = dragBounds.cz + (dz / dist) * effectiveR;
+      }
+    }
+
+    return { x: footX - FOOT_X, z: footZ - FOOT_Z };
   };
+
+  // Hard-enforce the constraint every frame by directly patching the Three.js position AFTER
+  // react-spring has already written its (possibly unclamped) value to the group.
+  // Also sync spring's internal value so it won't re-apply the unclamped value next frame.
+  useFrame(() => {
+    if (!groupRef.current) return;
+    const { x, y, z } = groupRef.current.position;
+    const clamped = clamp(x, z);
+    if (Math.abs(clamped.x - x) > 0.001 || Math.abs(clamped.z - z) > 0.001) {
+      groupRef.current.position.x = clamped.x;
+      groupRef.current.position.z = clamped.z;
+      spring.position.set([clamped.x, y, clamped.z]);
+    }
+  });
 
   const bind = useGesture({
     onDragStart: ({ event }) => {
@@ -126,6 +159,7 @@ const Model = ({ position, color, size, gender, dragBounds, onClick, onDragStart
         const clamped = clamp(pos.x + offset.current[0], pos.z + offset.current[2]);
         setSpring({
           position: [clamped.x, spring.position.get()[1], clamped.z],
+          immediate: true,
         });
       }
     },
@@ -143,6 +177,7 @@ const Model = ({ position, color, size, gender, dragBounds, onClick, onDragStart
 
   return (
     <a.group
+      ref={groupRef}
       {...spring}
       {...(bind() as object)}
       onClick={handleClick}
