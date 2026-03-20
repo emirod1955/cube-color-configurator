@@ -8,6 +8,7 @@ import * as THREE from "three";
 import { Model } from "./Model";
 import { WoodBase } from "./WoodBase";
 import { WoodenLetters } from "./WoodenLetters";
+import { BaseLights } from "./BaseLights";
 import { useForm } from "./context/FormContext";
 
 import './App.css';
@@ -76,6 +77,7 @@ function Scene() {
 
   const [controlsEnabled, setControlsEnabled] = useState(true);
   const [selectedPersonIndex, setSelectedPersonIndex] = useState(0);
+  const [isNight, setIsNight] = useState(false);
 
   const captureRef = useRef<(() => string) | null>(null);
 
@@ -112,7 +114,16 @@ function Scene() {
 
 
   return (
-    <div className="step2">
+    <div className="step2" style={{ position: "relative" }}>
+      <button className={`night-toggle-btn${isNight ? " night-toggle-btn--night" : ""}`} onClick={() => setIsNight(n => !n)}>
+        {isNight ? (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        ) : (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        )}
+        {isNight ? "Día" : "Noche"}
+      </button>
+
       <div className="step2canvas">
         <Canvas
           id="sceneCanva"
@@ -120,16 +131,14 @@ function Scene() {
           gl={{ preserveDrawingBuffer: true }}
           shadows
         >
-          <color attach="background" args={["#F4F2EE"]} />
-          <fog attach="fog" args={["#F4F2EE", 80, 180]} />
+          <color attach="background" args={[isNight ? "#080808" : "#F4F2EE"]} />
+          <fog attach="fog" args={[isNight ? "#080808" : "#F4F2EE", 80, 180]} />
           <ScreenshotCapturer captureRef={captureRef} />
           <CameraSetup woodText={woodText} />
-          {/* Sky warm / ground warm-muted — gives gradiente natural de iluminacion */}
-          <hemisphereLight args={["#FFF6EC", "#C8B49A", 1.1]} />
-          {/* Luz principal con sombras */}
+          <hemisphereLight args={["#FFF6EC", "#C8B49A", isNight ? 0.15 : 1.1]} />
           <directionalLight
             position={[-5, 16, 10]}
-            intensity={1.6}
+            intensity={isNight ? 0 : 1.6}
             castShadow
             shadow-mapSize-width={2048}
             shadow-mapSize-height={2048}
@@ -142,9 +151,11 @@ function Scene() {
             shadow-bias={0}
             shadow-normalBias={0.05}
           />
-          {/* Fill suave desde la derecha */}
-          <directionalLight position={[12, 6, -4]} intensity={0.45} />
+          <directionalLight position={[12, 6, -4]} intensity={isNight ? 0 : 0.45} />
           <WoodBase position={BASE_POSITION} onReady={handleBoundsReady} />
+          {dragBounds && (
+            <BaseLights cx={dragBounds.cx} cz={dragBounds.cz} radius={dragBounds.r} />
+          )}
           <Floor />
 
           {persons.map((person, i) => (

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useForm } from "../context/FormContext";
 import { calcTotal, formatPrice, PRICES } from "../../lib/pricing";
+import { ConfirmationPreview } from "./ConfirmationPreview";
 import "./Confirmation.css";
 
 const SIZE_LABEL: Record<number, string> = { 0.8: "S", 1: "M", 1.2: "L" };
@@ -50,11 +51,7 @@ const Confirmation = () => {
   return (
     <div className="confirmation">
       <div className="confirmation-preview">
-        {screenshotUrl ? (
-          <img src={screenshotUrl} alt="Vista previa" className="confirmation-screenshot" />
-        ) : (
-          <div className="confirmation-placeholder">Sin vista previa</div>
-        )}
+        <ConfirmationPreview persons={persons} woodText={woodText} />
       </div>
 
       <div className="confirmation-details">

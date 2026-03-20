@@ -287,4 +287,8 @@ const Model = ({ position, color, size, gender, dragBounds, letterPositions, per
   );
 };
 
+useGLTF.preload("/models/body_man.glb");
+useGLTF.preload("/models/body_woman.glb");
+useGLTF.preload("/models/head.glb");
+
 export { Model };
