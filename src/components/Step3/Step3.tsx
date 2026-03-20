@@ -40,7 +40,7 @@ const Step3 = () => {
             value={woodText}
             onChange={handleWoodTextChange}
             placeholder="Enter text"
-            maxLength={13}
+            maxLength={15}
           />
           <div className="step3NavButtons">
             <StepNavigation />

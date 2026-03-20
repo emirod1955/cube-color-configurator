@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
@@ -14,44 +14,52 @@ import './App.css';
 import "./Scene.css";
 import "./Step2/Step2.css";
 
-function ShadowLight() {
-  const ref = useRef<THREE.DirectionalLight>(null);
-  const { scene } = useThree();
-
-  useEffect(() => {
-    if (!ref.current) return;
-
-    ref.current.target.position.set(0, 0, 0);
-    scene.add(ref.current.target);
-
-    const cam = ref.current.shadow.camera;
-    cam.left   = -25;
-    cam.right  =  25;
-    cam.top    =  25;
-    cam.bottom = -25;
-    cam.near   =  1;
-    cam.far    =  80;
-    cam.updateProjectionMatrix();
-
-    return () => {
-      if (ref.current) scene.remove(ref.current.target);
-    };
-  }, [scene]);
-
+function Floor() {
   return (
-    <directionalLight
-      ref={ref}
-      position={[10, 15, 10]}
-      intensity={1}
-      castShadow
-      shadow-mapSize-width={2048}
-      shadow-mapSize-height={2048}
-      shadow-bias={-0.0005}
-    />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]} receiveShadow>
+      <planeGeometry args={[200, 200]} />
+      <meshStandardMaterial color="#FDFCFA" roughness={0.82} metalness={0} />
+    </mesh>
   );
 }
 
+
+
+function CameraSetup({ woodText }: { woodText: string }) {
+  const { camera } = useThree();
+
+  useEffect(() => {
+    const numLetters = Math.min(Math.max(woodText.trim().length, 1), 15);
+    const angleStep = THREE.MathUtils.degToRad(24);
+    const midAngle = Math.PI / 2 - ((numLetters - 1) / 2) * angleStep;
+    // Place camera outside the letter arc in the direction letters face
+    camera.position.set(
+      38 * Math.cos(midAngle),
+      12,
+      38 * Math.sin(midAngle)
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return null;
+}
+
+
+
+
 const BASE_POSITION: [number, number, number] = [1.5, -2, -4.5];
+
+function ScreenshotCapturer({ captureRef }: { captureRef: React.MutableRefObject<(() => string) | null> }) {
+  const { gl, scene, camera } = useThree();
+  useEffect(() => {
+    captureRef.current = () => {
+      gl.render(scene, camera);
+      return gl.domElement.toDataURL("image/png");
+    };
+    return () => { captureRef.current = null; };
+  }, [gl, scene, camera, captureRef]);
+  return null;
+}
 
 function Scene() {
   const {
@@ -60,11 +68,27 @@ function Scene() {
     woodText,
     handleGenderChange,
     handleSizeChange,
+    dragBounds,
+    handleBoundsReady,
+    setScreenshotUrl,
+    nextStep,
   } = useForm();
 
   const [controlsEnabled, setControlsEnabled] = useState(true);
   const [selectedPersonIndex, setSelectedPersonIndex] = useState(0);
-  const [dragBounds, setDragBounds] = useState<{ cx: number; cz: number; r: number } | undefined>(undefined);
+
+  const captureRef = useRef<(() => string) | null>(null);
+
+  const handleNext = useCallback(() => {
+    const url = captureRef.current?.();
+    if (url) setScreenshotUrl(url);
+    nextStep();
+  }, [setScreenshotUrl, nextStep]);
+
+  const personPositionsRef = useRef<([number, number, number] | undefined)[]>([]);
+  const personSizesRef = useRef<(number | undefined)[]>([]);
+  // Lock selection changes while any person is being dragged
+  const isDraggingAnyRef = useRef(false);
 
   const letterPositions = useMemo(() => {
     const count = Math.min(woodText.length, 15);
@@ -76,52 +100,74 @@ function Scene() {
     });
   }, [woodText]);
 
-  const handleDragStart = () => setControlsEnabled(false);
+  const handleDragStart = () => {
+    setControlsEnabled(false);
+    isDraggingAnyRef.current = true;
+  };
   const handleDragEnd = (index: number) => {
     setControlsEnabled(true);
+    isDraggingAnyRef.current = false;
     setSelectedPersonIndex(index);
   };
 
-  const handleBoundsReady = useCallback((cx: number, cz: number, r: number) => {
-    setDragBounds({ cx, cz, r });
-  }, []);
 
   return (
     <div className="step2">
-      <div className="step2canvas" style={{ background: '#F4F2EE' }}>
+      <div className="step2canvas">
         <Canvas
           id="sceneCanva"
-          shadows
           camera={{ position: [40, 40, 40], fov: 30 }}
-          onCreated={({ gl }) => {
-            gl.shadowMap.enabled = true;
-            gl.shadowMap.type = THREE.PCFSoftShadowMap;
-          }}
+          gl={{ preserveDrawingBuffer: true }}
+          shadows
         >
-          <ambientLight intensity={1.5} />
-          <ShadowLight />
+          <color attach="background" args={["#F4F2EE"]} />
+          <fog attach="fog" args={["#F4F2EE", 80, 180]} />
+          <ScreenshotCapturer captureRef={captureRef} />
+          <CameraSetup woodText={woodText} />
+          {/* Sky warm / ground warm-muted — gives gradiente natural de iluminacion */}
+          <hemisphereLight args={["#FFF6EC", "#C8B49A", 1.1]} />
+          {/* Luz principal con sombras */}
+          <directionalLight
+            position={[-5, 16, 10]}
+            intensity={1.6}
+            castShadow
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+            shadow-camera-near={0.1}
+            shadow-camera-far={120}
+            shadow-camera-left={-30}
+            shadow-camera-right={30}
+            shadow-camera-top={30}
+            shadow-camera-bottom={-30}
+            shadow-bias={0}
+            shadow-normalBias={0.05}
+          />
+          {/* Fill suave desde la derecha */}
+          <directionalLight position={[12, 6, -4]} intensity={0.45} />
           <WoodBase position={BASE_POSITION} onReady={handleBoundsReady} />
-          {/* Transparent shadow-catching plane at base surface level */}
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} receiveShadow>
-            <planeGeometry args={[22, 22]} />
-            <shadowMaterial transparent opacity={0.35} />
-          </mesh>
+          <Floor />
+
           {persons.map((person, i) => (
             <Model
               key={i}
+              personIndex={i}
+              personPositionsRef={personPositionsRef}
+              personSizesRef={personSizesRef}
+              isDraggingAnyRef={isDraggingAnyRef}
               position={person.position}
               color={person.color}
               size={person.size}
               gender={person.gender}
               dragBounds={dragBounds}
               letterPositions={letterPositions}
-              onClick={() => setSelectedPersonIndex(i)}
+              isSelected={selectedPersonIndex === i}
+              onClick={() => { if (!isDraggingAnyRef.current) setSelectedPersonIndex(i); }}
               onDragStart={handleDragStart}
               onDragEnd={() => handleDragEnd(i)}
             />
           ))}
           <WoodenLetters woodText={woodText} />
-          <OrbitControls enabled={controlsEnabled} />
+          <OrbitControls enabled={controlsEnabled} maxPolarAngle={Math.PI / 2 - 0.05} maxDistance={80} minDistance={20} />
         </Canvas>
       </div>
 
@@ -183,6 +229,9 @@ function Scene() {
                   </button>
                 ))}
               </div>
+            </div>
+            <div className="sceneNavButtons">
+              <button className="navNext" onClick={handleNext}>Siguiente</button>
             </div>
           </div>
         )}

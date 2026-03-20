@@ -50,7 +50,7 @@ const WoodenLetters = ({ woodText }: WoodenLettersProps) => {
     >
       <mesh castShadow receiveShadow>
         <boxGeometry args={[2, 2, 0.3]} />
-        <meshStandardMaterial map={woodTexture} color={new THREE.Color(1.8, 1.5, 1.2)} roughness={0.75} metalness={0} />
+        <meshLambertMaterial map={woodTexture} color={new THREE.Color(0.88, 0.72, 0.50)} />
       </mesh>
       <Text
         position={[0, 0, 0.17]}

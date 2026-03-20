@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useRef } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useGLTF } from "@react-three/drei";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import * as THREE from "three";
@@ -19,12 +19,17 @@ interface ModelProps {
   gender: "man" | "woman";
   dragBounds?: { cx: number; cz: number; r: number };
   letterPositions?: { x: number; z: number }[];
+  personIndex?: number;
+  personPositionsRef?: React.MutableRefObject<([number, number, number] | undefined)[]>;
+  personSizesRef?: React.MutableRefObject<(number | undefined)[]>;
+  isDraggingAnyRef?: React.MutableRefObject<boolean>;
+  isSelected?: boolean;
   onClick?: () => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
 }
 
-const Model = ({ position, color, size, gender, dragBounds, letterPositions, onClick, onDragStart, onDragEnd }: ModelProps) => {
+const Model = ({ position, color, size, gender, dragBounds, letterPositions, personIndex, personPositionsRef, personSizesRef, isDraggingAnyRef, isSelected, onClick, onDragStart, onDragEnd }: ModelProps) => {
   const { scene: bodyScene } = useGLTF(
     gender === "man" ? "/models/body_man.glb" : "/models/body_woman.glb"
   );
@@ -32,6 +37,8 @@ const Model = ({ position, color, size, gender, dragBounds, letterPositions, onC
 
   const { camera, gl } = useThree();
   const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false); // ref copy so useFrame never reads stale state
+  const postDragFramesRef = useRef(0); // keep clamping for N frames after release
   const startPosition = useRef<{ x: number; y: number } | null>(null);
   const offset = useRef<[number, number, number]>([0, 0, 0]);
   const groupRef = useRef<THREE.Group>(null);
@@ -43,6 +50,16 @@ const Model = ({ position, color, size, gender, dragBounds, letterPositions, onC
     rotation: [0, 0, 0] as [number, number, number],
     config: { friction: 10 },
   }));
+
+  // Sync spring to the position prop whenever it changes (e.g. after getDefaultPositions
+  // repositions everyone). Skip during active drags — the spring is under gesture control.
+  useEffect(() => {
+    if (!isDraggingRef.current) {
+      setSpring({ position, immediate: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [position[0], position[1], position[2]]);
+
 
   const person = useMemo(() => {
     const body = clone(bodyScene);
@@ -90,14 +107,41 @@ const Model = ({ position, color, size, gender, dragBounds, letterPositions, onC
   // Constrain the foot to the base circle and repel it from letter tiles.
   const FOOT_X = -4.5;
   const FOOT_Z = 2.0;
-  const BODY_RADIUS = 3.0;     // shrinks base circle inward
-  const LETTER_MIN_DIST = 2; // min distance from foot to any letter center
+  const BODY_RADIUS = 3.0;
+  const LETTER_MIN_DIST = 2;
+  // Half-width of a size-1.0 figure; minimum foot distance = (sizeA + sizeB) * HALF_BODY
+  const HALF_BODY = 1.1;
 
   const clamp = (springX: number, springZ: number) => {
     let footX = springX + FOOT_X;
     let footZ = springZ + FOOT_Z;
 
-    // 1. Repel from letter tiles
+    // 1. Repel dragged person from stationary persons (size-aware).
+    //    Stationary persons never move — only the dragged person is pushed away.
+    if (personPositionsRef?.current && personIndex !== undefined) {
+      for (let i = 0; i < personPositionsRef.current.length; i++) {
+        if (i === personIndex) continue;
+        const other = personPositionsRef.current[i];
+        if (!other) continue;
+        const otherSize = personSizesRef?.current[i] ?? 1.0;
+        const minDist = (size + otherSize) * HALF_BODY;
+        const otherFootX = other[0] + FOOT_X;
+        const otherFootZ = other[2] + FOOT_Z;
+        const pdx = footX - otherFootX;
+        const pdz = footZ - otherFootZ;
+        const pdist = Math.sqrt(pdx * pdx + pdz * pdz);
+        if (pdist < minDist) {
+          if (pdist < 0.001) {
+            footX += minDist;
+          } else {
+            footX = otherFootX + (pdx / pdist) * minDist;
+            footZ = otherFootZ + (pdz / pdist) * minDist;
+          }
+        }
+      }
+    }
+
+    // 2. Repel from letter tiles
     if (letterPositions) {
       for (const { x: lx, z: lz } of letterPositions) {
         const ldx = footX - lx;
@@ -110,7 +154,7 @@ const Model = ({ position, color, size, gender, dragBounds, letterPositions, onC
       }
     }
 
-    // 2. Clamp to base circle (last so figure always stays on base)
+    // 3. Clamp to base circle (last so figure always stays on base)
     if (dragBounds) {
       const dx = footX - dragBounds.cx;
       const dz = footZ - dragBounds.cz;
@@ -125,12 +169,26 @@ const Model = ({ position, color, size, gender, dragBounds, letterPositions, onC
     return { x: footX - FOOT_X, z: footZ - FOOT_Z };
   };
 
-  // Hard-enforce the constraint every frame by directly patching the Three.js position AFTER
-  // react-spring has already written its (possibly unclamped) value to the group.
-  // Also sync spring's internal value so it won't re-apply the unclamped value next frame.
   useFrame(() => {
     if (!groupRef.current) return;
-    const { x, y, z } = groupRef.current.position;
+    const [x, y, z] = spring.position.get();
+
+    // Always publish position and size so other persons can read them when dragged.
+    if (personPositionsRef?.current && personIndex !== undefined) {
+      personPositionsRef.current[personIndex] = [x, y, z];
+    }
+    if (personSizesRef?.current && personIndex !== undefined) {
+      personSizesRef.current[personIndex] = size;
+    }
+
+    // Clamp while dragging AND for a short window after release so residual
+    // spring motion can't carry the person past the repulsion boundary.
+    // postDragFramesRef starts at 0 on mount so the spawn-fly bug is not reintroduced.
+    if (!isDraggingRef.current) {
+      if (postDragFramesRef.current <= 0) return;
+      postDragFramesRef.current--;
+    }
+
     const clamped = clamp(x, z);
     if (Math.abs(clamped.x - x) > 0.001 || Math.abs(clamped.z - z) > 0.001) {
       groupRef.current.position.x = clamped.x;
@@ -141,7 +199,9 @@ const Model = ({ position, color, size, gender, dragBounds, letterPositions, onC
 
   const bind = useGesture({
     onDragStart: ({ event }) => {
+      if (isDraggingAnyRef?.current) return; // another person is already being dragged
       setIsDragging(false);
+      isDraggingRef.current = false;
       const e = event as MouseEvent;
       const pos = getPlanePosition(e.clientX, e.clientY);
       const currentPosition = spring.position.get();
@@ -155,16 +215,48 @@ const Model = ({ position, color, size, gender, dragBounds, letterPositions, onC
       const deltaY = Math.abs(y - startPosition.current.y);
       if (deltaX > dragThreshold || deltaY > dragThreshold) {
         setIsDragging(true);
+        isDraggingRef.current = true;
         const pos = getPlanePosition(x, y);
         const clamped = clamp(pos.x + offset.current[0], pos.z + offset.current[2]);
-        setSpring({
-          position: [clamped.x, spring.position.get()[1], clamped.z],
-          immediate: true,
-        });
+
+        // Block movement if the clamped position still overlaps any person —
+        // i.e. there is no room to fit here. Person stays where it is.
+        let blocked = false;
+        if (personPositionsRef?.current && personIndex !== undefined) {
+          const cfx = clamped.x + FOOT_X;
+          const cfz = clamped.z + FOOT_Z;
+          for (let i = 0; i < personPositionsRef.current.length; i++) {
+            if (i === personIndex) continue;
+            const other = personPositionsRef.current[i];
+            if (!other) continue;
+            const otherSize = personSizesRef?.current[i] ?? 1.0;
+            const minDist = (size + otherSize) * HALF_BODY;
+            const dx = cfx - (other[0] + FOOT_X);
+            const dz = cfz - (other[2] + FOOT_Z);
+            if (Math.sqrt(dx * dx + dz * dz) < minDist - 0.01) {
+              blocked = true;
+              break;
+            }
+          }
+        }
+
+        if (!blocked) {
+          setSpring({
+            position: [clamped.x, spring.position.get()[1], clamped.z],
+            immediate: true,
+          });
+        }
       }
     },
     onDragEnd: () => {
+      // Snap to the clamped position immediately so no residual spring motion escapes.
+      const [x, y, z] = spring.position.get();
+      const snapped = clamp(x, z);
+      setSpring({ position: [snapped.x, y, snapped.z], immediate: true });
+      // Then keep clamping in useFrame for a few more frames as a safety net.
+      postDragFramesRef.current = 30;
       setIsDragging(false);
+      isDraggingRef.current = false;
       startPosition.current = null;
       onDragEnd?.();
     },
@@ -185,6 +277,12 @@ const Model = ({ position, color, size, gender, dragBounds, letterPositions, onC
       onPointerOut={(e: { stopPropagation: () => void }) => e.stopPropagation()}
     >
       <primitive object={person} />
+      {isSelected && (
+        <mesh position={[-4.5, 0.05, 2.0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[1.6 * size, 2.2 * size, 48]} />
+          <meshBasicMaterial color="#111111" opacity={0.25} transparent />
+        </mesh>
+      )}
     </a.group>
   );
 };

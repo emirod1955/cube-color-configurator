@@ -47,14 +47,13 @@ const WoodBase = ({ position = [0, 0, 0], onReady }: WoodBaseProps) => {
         const mesh = child as THREE.Mesh;
         mesh.geometry = mesh.geometry.clone();
         addCylindricalUVs(mesh.geometry);
-        mesh.material = new THREE.MeshStandardMaterial({
+        mesh.geometry.computeVertexNormals();
+        mesh.material = new THREE.MeshLambertMaterial({
           map: tex,
-          color: new THREE.Color(1.8, 1.5, 1.2),
-          roughness: 0.75,
-          metalness: 0.0,
+          color: new THREE.Color(0.88, 0.72, 0.50),
         });
-        mesh.receiveShadow = true;
         mesh.castShadow = true;
+        mesh.receiveShadow = true;
         mesh.userData.isBase = true;
       }
     });

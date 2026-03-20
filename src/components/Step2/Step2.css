@@ -126,3 +126,27 @@
   padding-top: 2.4rem;
   border-top: 1px solid var(--border);
 }
+
+.sceneNavButtons {
+  margin-top: 0.8rem;
+  padding-top: 2.4rem;
+  border-top: 1px solid var(--border);
+}
+
+.navNext {
+  padding: 1rem 2.4rem;
+  background: var(--text);
+  color: #fff;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  width: 100%;
+  transition: background var(--transition);
+}
+
+.navNext:hover {
+  background: var(--accent);
+}
