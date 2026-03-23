@@ -150,3 +150,181 @@
 .navNext:hover {
   background: var(--accent);
 }
+
+/* ── Mascotas ───────────────────────────────── */
+.pet-section {
+  width: 28rem;
+  padding: 2.4rem 0 2rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pet-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pet-section__label {
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.pet-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.pet-chip {
+  width: 3.6rem;
+  height: 3.6rem;
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.pet-chip:hover {
+  border-color: var(--text);
+}
+
+.pet-chip.selected {
+  border-color: var(--text);
+  background: var(--text);
+}
+
+.pet-add-btn {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px dashed var(--border-strong);
+  color: var(--text-sub);
+  font-size: 1.1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: all var(--transition);
+}
+
+.pet-add-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.pet-remove-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  text-decoration: underline;
+  margin-top: 0.4rem;
+}
+
+.pet-remove-btn:hover {
+  color: var(--text);
+}
+
+/* ── Pet type grid ─────────────────────── */
+.pet-type-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.pet-type-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.6rem 0.4rem;
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: all var(--transition);
+}
+
+.pet-type-btn:hover {
+  border-color: var(--text);
+}
+
+.pet-type-btn.selected {
+  border-color: var(--text);
+  background: var(--text);
+}
+
+.pet-type-btn.selected .pet-type-label {
+  color: #fff;
+}
+
+.pet-type-emoji {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.pet-type-label {
+  font-size: 0.7rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  color: var(--text-sub);
+  letter-spacing: 0.02em;
+}
+
+/* ── Photo upload ──────────────────────── */
+.pet-photo-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+.pet-photo-label {
+  font-size: 0.9rem;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-sub);
+  cursor: pointer;
+  padding: 0.6rem 1rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  text-align: center;
+  transition: all var(--transition);
+}
+
+.pet-photo-label:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.pet-photo-input {
+  display: none;
+}
+
+.pet-photo-preview {
+  width: 100%;
+  max-height: 8rem;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.pet-photo-error {
+  font-size: 0.85rem;
+  color: #E63946;
+  font-family: 'DM Sans', sans-serif;
+  margin-bottom: 0.6rem;
+}

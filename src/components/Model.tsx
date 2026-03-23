@@ -7,6 +7,10 @@ import * as THREE from "three";
 import { useGesture } from "@use-gesture/react";
 import { useSpring, a } from "@react-spring/three";
 import { useThree, useFrame } from "@react-three/fiber";
+import { LED_RADIUS_FACTOR } from "./BaseLights";
+import { PET_SCALE } from "./Pet/PetModel";
+
+const PET_HALF_BODY = 0.9; // collision radius factor for the pet (matches DraggablePetModel)
 
 const raycaster = new THREE.Raycaster();
 const plane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
@@ -18,10 +22,10 @@ interface ModelProps {
   size: number;
   gender: "man" | "woman";
   dragBounds?: { cx: number; cz: number; r: number };
-  letterPositions?: { x: number; z: number }[];
   personIndex?: number;
   personPositionsRef?: React.MutableRefObject<([number, number, number] | undefined)[]>;
   personSizesRef?: React.MutableRefObject<(number | undefined)[]>;
+  petPositionsRef?: React.MutableRefObject<([number, number, number] | null)[]>;
   isDraggingAnyRef?: React.MutableRefObject<boolean>;
   isSelected?: boolean;
   onClick?: () => void;
@@ -29,7 +33,7 @@ interface ModelProps {
   onDragEnd?: () => void;
 }
 
-const Model = ({ position, color, size, gender, dragBounds, letterPositions, personIndex, personPositionsRef, personSizesRef, isDraggingAnyRef, isSelected, onClick, onDragStart, onDragEnd }: ModelProps) => {
+const Model = ({ position, color, size, gender, dragBounds, personIndex, personPositionsRef, personSizesRef, petPositionsRef, isDraggingAnyRef, isSelected, onClick, onDragStart, onDragEnd }: ModelProps) => {
   const { scene: bodyScene } = useGLTF(
     gender === "man" ? "/models/body_man.glb" : "/models/body_woman.glb"
   );
@@ -107,17 +111,13 @@ const Model = ({ position, color, size, gender, dragBounds, letterPositions, per
   // Constrain the foot to the base circle and repel it from letter tiles.
   const FOOT_X = -4.5;
   const FOOT_Z = 2.0;
-  const BODY_RADIUS = 3.0;
-  const LETTER_MIN_DIST = 2;
-  // Half-width of a size-1.0 figure; minimum foot distance = (sizeA + sizeB) * HALF_BODY
   const HALF_BODY = 1.1;
 
   const clamp = (springX: number, springZ: number) => {
     let footX = springX + FOOT_X;
     let footZ = springZ + FOOT_Z;
 
-    // 1. Repel dragged person from stationary persons (size-aware).
-    //    Stationary persons never move — only the dragged person is pushed away.
+    // Repel dragged person from stationary persons (size-aware).
     if (personPositionsRef?.current && personIndex !== undefined) {
       for (let i = 0; i < personPositionsRef.current.length; i++) {
         if (i === personIndex) continue;
@@ -141,25 +141,31 @@ const Model = ({ position, color, size, gender, dragBounds, letterPositions, per
       }
     }
 
-    // 2. Repel from letter tiles
-    if (letterPositions) {
-      for (const { x: lx, z: lz } of letterPositions) {
-        const ldx = footX - lx;
-        const ldz = footZ - lz;
-        const ldist = Math.sqrt(ldx * ldx + ldz * ldz);
-        if (ldist < LETTER_MIN_DIST && ldist > 0) {
-          footX = lx + (ldx / ldist) * LETTER_MIN_DIST;
-          footZ = lz + (ldz / ldist) * LETTER_MIN_DIST;
+    // Repel from all pets
+    if (petPositionsRef?.current) {
+      for (const petPos of petPositionsRef.current) {
+        if (!petPos) continue;
+        const minDist = size * HALF_BODY + PET_SCALE * PET_HALF_BODY;
+        const pdx = footX - petPos[0];
+        const pdz = footZ - petPos[2];
+        const pdist = Math.sqrt(pdx * pdx + pdz * pdz);
+        if (pdist < minDist) {
+          if (pdist < 0.001) {
+            footX += minDist;
+          } else {
+            footX = petPos[0] + (pdx / pdist) * minDist;
+            footZ = petPos[2] + (pdz / pdist) * minDist;
+          }
         }
       }
     }
 
-    // 3. Clamp to base circle (last so figure always stays on base)
+    // Clamp to LED circle
     if (dragBounds) {
       const dx = footX - dragBounds.cx;
       const dz = footZ - dragBounds.cz;
       const dist = Math.sqrt(dx * dx + dz * dz);
-      const effectiveR = dragBounds.r - BODY_RADIUS;
+      const effectiveR = dragBounds.r * LED_RADIUS_FACTOR - 1.5 * size;
       if (dist > effectiveR) {
         footX = dragBounds.cx + (dx / dist) * effectiveR;
         footZ = dragBounds.cz + (dz / dist) * effectiveR;
@@ -233,6 +239,22 @@ const Model = ({ position, color, size, gender, dragBounds, letterPositions, per
             const minDist = (size + otherSize) * HALF_BODY;
             const dx = cfx - (other[0] + FOOT_X);
             const dz = cfz - (other[2] + FOOT_Z);
+            if (Math.sqrt(dx * dx + dz * dz) < minDist - 0.01) {
+              blocked = true;
+              break;
+            }
+          }
+        }
+
+        // Also check against all pets
+        if (!blocked && petPositionsRef?.current) {
+          const pfx = clamped.x + FOOT_X;
+          const pfz = clamped.z + FOOT_Z;
+          for (const petPos of petPositionsRef.current) {
+            if (!petPos) continue;
+            const minDist = size * HALF_BODY + PET_SCALE * PET_HALF_BODY;
+            const dx = pfx - petPos[0];
+            const dz = pfz - petPos[2];
             if (Math.sqrt(dx * dx + dz * dz) < minDist - 0.01) {
               blocked = true;
               break;

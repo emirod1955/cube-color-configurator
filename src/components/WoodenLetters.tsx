@@ -18,7 +18,7 @@ const WoodenLetters = ({ woodText }: WoodenLettersProps) => {
     tex.needsUpdate = true;
     return tex;
   }, [woodTextureRaw]);
-  const maxLetters = 15;
+  const maxLetters = 9;
   const letters = woodText.slice(0, maxLetters).split("");
 
   const radius = 5;
@@ -48,19 +48,23 @@ const WoodenLetters = ({ woodText }: WoodenLettersProps) => {
         self.rotateY(Math.PI);
       }}
     >
-      <mesh castShadow receiveShadow>
-        <boxGeometry args={[2, 2, 0.3]} />
-        <meshLambertMaterial map={woodTexture} color={new THREE.Color(0.88, 0.72, 0.50)} />
-      </mesh>
-      <Text
-        position={[0, 0, 0.17]}
-        fontSize={1}
-        color="#000000"
-        anchorX="center"
-        anchorY="middle"
-      >
-        {letter}
-      </Text>
+      {letter !== " " && (
+        <>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[2, 2, 0.3]} />
+            <meshLambertMaterial map={woodTexture} color={new THREE.Color(0.88, 0.72, 0.50)} />
+          </mesh>
+          <Text
+            position={[0, 0, 0.17]}
+            fontSize={1}
+            color="#000000"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {letter}
+          </Text>
+        </>
+      )}
     </group>
   ));
 };

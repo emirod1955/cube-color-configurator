@@ -9,14 +9,14 @@ import "./Confirmation.css";
 const SIZE_LABEL: Record<number, string> = { 0.8: "S", 1: "M", 1.2: "L" };
 
 const Confirmation = () => {
-  const { screenshotUrl, persons, woodText, prevStep } = useForm();
+  const { screenshotUrl, persons, woodText, prevStep, pets } = useForm();
 
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const total = calcTotal(persons.length);
+  const total = calcTotal(persons.length, pets.length);
 
   const handleDownload = () => {
     if (!screenshotUrl) return;
@@ -51,7 +51,7 @@ const Confirmation = () => {
   return (
     <div className="confirmation">
       <div className="confirmation-preview">
-        <ConfirmationPreview persons={persons} woodText={woodText} />
+        <ConfirmationPreview persons={persons} woodText={woodText} pets={pets} />
       </div>
 
       <div className="confirmation-details">
@@ -91,6 +91,12 @@ const Confirmation = () => {
             <span>{persons.length} {persons.length === 1 ? "figura" : "figuras"}</span>
             <span>{formatPrice(PRICES.perPerson * persons.length)}</span>
           </div>
+          {pets.length > 0 && (
+            <div className="confirmation-price-row">
+              <span>{pets.length} {pets.length === 1 ? "mascota" : "mascotas"}</span>
+              <span>{formatPrice(PRICES.perPet * pets.length)}</span>
+            </div>
+          )}
           <div className="confirmation-price-total">
             <span>Total</span>
             <span>{formatPrice(total)}</span>

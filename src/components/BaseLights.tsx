@@ -10,9 +10,11 @@ interface BaseLightsProps {
   y?: number;
 }
 
+export const LED_RADIUS_FACTOR = 0.63;
+
 const BaseLights = ({ cx, cz, radius, y = 0.0 }: BaseLightsProps) => {
   const COUNT = 8;
-  const LED_RADIUS = radius * 0.63;
+  const LED_RADIUS = radius * LED_RADIUS_FACTOR;
 
   const positions = useMemo<[number, number, number][]>(() =>
     Array.from({ length: COUNT }, (_, i) => {
@@ -39,9 +41,6 @@ const BaseLights = ({ cx, cz, radius, y = 0.0 }: BaseLightsProps) => {
     return new THREE.TubeGeometry(curve, 128, 0.04, 6, true);
   }, [cx, cz, LED_RADIUS, y]);
 
-  // 4 point lights distribuidos uniformemente para iluminar la escena
-  const lightIndices = [0, 2, 4, 6];
-
   return (
     <>
       {/* Cable */}
@@ -50,7 +49,6 @@ const BaseLights = ({ cx, cz, radius, y = 0.0 }: BaseLightsProps) => {
       </mesh>
       {positions.map((pos, i) => (
         <group key={i} position={pos}>
-          {/* Núcleo del LED */}
           <mesh>
             <sphereGeometry args={[0.16, 8, 8]} />
             <meshStandardMaterial
@@ -60,30 +58,13 @@ const BaseLights = ({ cx, cz, radius, y = 0.0 }: BaseLightsProps) => {
               toneMapped={false}
             />
           </mesh>
-          {/* Halo suave */}
-          <mesh>
-            <sphereGeometry args={[0.36, 8, 8]} />
-            <meshStandardMaterial
-              color="#FFD060"
-              emissive={new THREE.Color("#FFD060")}
-              emissiveIntensity={1.5}
-              transparent
-              opacity={0.12}
-              toneMapped={false}
-            />
-          </mesh>
+          <pointLight
+            color="#FFB830"
+            intensity={8}
+            distance={16}
+            decay={2}
+          />
         </group>
-      ))}
-
-      {lightIndices.map((idx) => (
-        <pointLight
-          key={idx}
-          position={positions[idx]}
-          color="#FFB830"
-          intensity={8}
-          distance={16}
-          decay={2}
-        />
       ))}
     </>
   );

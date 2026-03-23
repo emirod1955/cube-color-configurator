@@ -15,13 +15,13 @@ const Step3 = () => {
   const [bounds, setBounds] = useState<{ cx: number; cz: number; r: number } | null>(null);
 
   const handleWoodTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setWoodText(e.target.value.toUpperCase());
+    setWoodText(e.target.value.replace(/[^a-zA-ZÀ-ÿ ]/g, "").replace(/ {2,}/g, " ").replace(/^ /, "").toUpperCase());
   };
 
   return (
     <div className="Step3">
       <div style={{ flex: 1, background: '#F4F2EE', height: '100vh' }}>
-      <Canvas shadows camera={{ position: [35, 16, 20], fov: 30 }}>
+      <Canvas shadows camera={{ position: [38, 26, 28], fov: 30 }}>
         <color attach="background" args={["#F4F2EE"]} />
         <fog attach="fog" args={["#F4F2EE", 80, 180]} />
         <hemisphereLight args={["#FFF6EC", "#C8B49A", 1.1]} />
@@ -61,7 +61,7 @@ const Step3 = () => {
             value={woodText}
             onChange={handleWoodTextChange}
             placeholder="Enter text"
-            maxLength={15}
+            maxLength={9}
           />
           <div className="step3NavButtons">
             <StepNavigation />

@@ -1,6 +1,15 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { LED_RADIUS_FACTOR } from "../BaseLights";
+
+
+export interface PetConfig {
+  type: string;
+  color: string;
+  position: [number, number, number];
+  photo?: string;
+}
 
 export interface Person {
   color: string;
@@ -33,6 +42,8 @@ interface FormContextType {
   handleBoundsReady: (cx: number, cz: number, r: number) => void;
   screenshotUrl: string | null;
   setScreenshotUrl: (url: string | null) => void;
+  pets: PetConfig[];
+  setPets: React.Dispatch<React.SetStateAction<PetConfig[]>>;
 }
 
 const FormContext = createContext<FormContextType | undefined>(undefined);
@@ -56,13 +67,13 @@ function getDefaultPositions(
   woodText: string,
   dragBounds?: Bounds,
 ): Person[] {
-  const numLetters = Math.min(Math.max(woodText.trim().length, 1), 15);
+  const numLetters = Math.min(Math.max(woodText.trim().length, 1), 9);
   const angleStep = (24 * Math.PI) / 180;
   const midAngle = Math.PI / 2 - ((numLetters - 1) / 2) * angleStep;
 
   const SPACING     = 2.7;  // arc-length gap between adjacent persons in a row
   const ROW_DEPTH   = 2.8;  // radial distance between consecutive rows
-  const BODY_RADIUS = 3.0;  // must match Model.tsx
+
   const FOOT_X      = -4.5;
   const FOOT_Z      =  2.0;
 
@@ -97,7 +108,8 @@ function getDefaultPositions(
     return result; // will be repositioned once bounds are ready
   }
 
-  const effectiveR = dragBounds.r - BODY_RADIUS;
+  const maxSize = Math.max(...persons.map(p => p.size));
+  const effectiveR = dragBounds.r * LED_RADIUS_FACTOR - 1.5 * maxSize;
 
   // Minimum guaranteed spacing constraints:
   //   MIN_SPACING   – radial gap between consecutive rows (≥ 2.2 to clear persons)
@@ -120,21 +132,18 @@ function getDefaultPositions(
     effectiveROW_DEPTH = calcDepth(numRows);
   }
 
-  // All rows are arcs concentric with the base disc.
-  // Row 0 (back, largest) sits at radius effectiveR; each subsequent row steps
-  // inward by effectiveROW_DEPTH. Persons face the camera, so row centers point
-  // in the anti-camera direction (backAngle = π + midAngle).
   const backAngle = Math.PI + midAngle;
 
   rows.forEach((rowIndices, rowIndex) => {
-    const R     = effectiveR - rowIndex * effectiveROW_DEPTH;
+    const rowSize = persons[rowIndices[0]].size;
+    const rowR = dragBounds.r * LED_RADIUS_FACTOR - 1.5 * rowSize - rowIndex * effectiveROW_DEPTH;
     const count = rowIndices.length;
-    const angStep = count > 1 && R > 0 ? SPACING / R : 0;
+    const angStep = count > 1 && rowR > 0 ? SPACING / rowR : 0;
 
     rowIndices.forEach((personIdx, j) => {
       const angle = backAngle + (j - (count - 1) / 2) * angStep;
-      const footX = dragBounds.cx + R * Math.cos(angle);
-      const footZ = dragBounds.cz + R * Math.sin(angle);
+      const footX = dragBounds.cx + rowR * Math.cos(angle);
+      const footZ = dragBounds.cz + rowR * Math.sin(angle);
       result[personIdx] = {
         ...persons[personIdx],
         position: [footX - FOOT_X, 0, footZ - FOOT_Z] as [number, number, number],
@@ -155,6 +164,7 @@ export const FormProvider = ({ children }: { children: ReactNode }) => {
   const [woodText, setWoodText] = useState("FAMILY");
   const [dragBounds, setDragBounds] = useState<Bounds | undefined>(undefined);
   const [screenshotUrl, setScreenshotUrl] = useState<string | null>(null);
+  const [pets, setPets] = useState<PetConfig[]>([]);
 
   // Called by WoodBase once the real draggable circle is known.
   // Repositions everyone to fit inside the bounds.
@@ -222,6 +232,8 @@ export const FormProvider = ({ children }: { children: ReactNode }) => {
         handleBoundsReady,
         screenshotUrl,
         setScreenshotUrl,
+        pets,
+        setPets,
       }}
     >
       {children}
