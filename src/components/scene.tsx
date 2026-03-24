@@ -433,7 +433,7 @@ function Scene() {
               onDragEnd={() => setControlsEnabled(true)}
             />
           ))}
-          <OrbitControls enabled={controlsEnabled} maxPolarAngle={Math.PI / 2 - 0.05} maxDistance={80} minDistance={20} />
+          <OrbitControls target={dragBounds ? [dragBounds.cx, 3, dragBounds.cz] : [0, 3, 0]} enabled={controlsEnabled} maxPolarAngle={Math.PI / 2 - 0.05} maxDistance={80} minDistance={20} />
         </Canvas>
       </div>
 
@@ -461,7 +461,7 @@ function Scene() {
                 {[
                   '#F5F5F5', '#222222', '#E63946', '#F4A261',
                   '#2A9D8F', '#457B9D', '#6A0572', '#F1C40F',
-                  '#8B4513', '#A8D8EA',
+                  '#8B4513', '#A8D8EA', '#F4A7B9', '#9E9E9E',
                 ].map((c) => (
                   <button
                     key={c}

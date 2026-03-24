@@ -21,7 +21,7 @@ const Step3 = () => {
   return (
     <div className="Step3">
       <div style={{ flex: 1, background: '#F4F2EE', height: '100vh' }}>
-      <Canvas shadows camera={{ position: [38, 26, 28], fov: 30 }}>
+      <Canvas shadows camera={{ position: [30, 18, 22], fov: 35 }}>
         <color attach="background" args={["#F4F2EE"]} />
         <fog attach="fog" args={["#F4F2EE", 80, 180]} />
         <hemisphereLight args={["#FFF6EC", "#C8B49A", 1.1]} />
@@ -47,7 +47,7 @@ const Step3 = () => {
           <planeGeometry args={[200, 200]} />
           <meshStandardMaterial color="#FDFCFA" roughness={0.82} metalness={0} />
         </mesh>
-        <OrbitControls maxPolarAngle={Math.PI / 2 - 0.05} maxDistance={80} minDistance={20} />
+        <OrbitControls target={bounds ? [bounds.cx, 1, bounds.cz] : [0, 1, 0]} maxPolarAngle={Math.PI / 2 - 0.05} maxDistance={80} minDistance={20} />
       </Canvas>
       </div>
       <div className="rightSide">

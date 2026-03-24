@@ -84,13 +84,15 @@ const Confirmation = () => {
         {/* Precio */}
         <div className="confirmation-price">
           <div className="confirmation-price-row">
-            <span>Base + letras</span>
+            <span>Cupula Basica 2 integrantes</span>
             <span>{formatPrice(PRICES.base)}</span>
           </div>
-          <div className="confirmation-price-row">
-            <span>{persons.length} {persons.length === 1 ? "figura" : "figuras"}</span>
-            <span>{formatPrice(PRICES.perPerson * persons.length)}</span>
-          </div>
+          {persons.length > 2 && (
+            <div className="confirmation-price-row">
+              <span>{persons.length - 2} {persons.length - 2 === 1 ? "integrante extra" : "integrantes extra"}</span>
+              <span>{formatPrice(PRICES.perExtraPerson * (persons.length - 2))}</span>
+            </div>
+          )}
           {pets.length > 0 && (
             <div className="confirmation-price-row">
               <span>{pets.length} {pets.length === 1 ? "mascota" : "mascotas"}</span>

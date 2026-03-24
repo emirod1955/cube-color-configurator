@@ -203,9 +203,9 @@ export const FormProvider = ({ children }: { children: ReactNode }) => {
     setPersons((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], size: newSize };
-      return updated;
+      return getDefaultPositions(updated, woodText, dragBounds);
     });
-  }, []);
+  }, [woodText, dragBounds]);
 
   const nextStep = useCallback(() => setStep((prev) => prev + 1), []);
   const prevStep = useCallback(() => setStep((prev) => prev - 1), []);

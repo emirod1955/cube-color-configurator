@@ -48,7 +48,7 @@ const Step2 = ({ person, index }: Step2Props) => {
   return (
     <div className="step2">
       <div style={{ flex: 1, background: '#F4F2EE', height: '100vh' }}>
-      <Canvas id="step2canvas" camera={{ position: [50, 5, 0], fov: 15 }}>
+      <Canvas id="step2canvas" camera={{ position: [50, 0, 0], fov: 15 }}>
         <ambientLight intensity={1.5} />
         <directionalLight position={[10, 10, 10]} intensity={1} />
         <Center>
@@ -78,7 +78,7 @@ const Step2 = ({ person, index }: Step2Props) => {
               {[
                 '#F5F5F5', '#222222', '#E63946', '#F4A261',
                 '#2A9D8F', '#457B9D', '#6A0572', '#F1C40F',
-                '#8B4513', '#A8D8EA',
+                '#8B4513', '#A8D8EA', '#F4A7B9', '#9E9E9E',
               ].map((c) => (
                 <button
                   key={c}

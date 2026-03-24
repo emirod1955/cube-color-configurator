@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { useMemo, useState, useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import * as THREE from "three";
@@ -49,6 +49,36 @@ function PreviewPerson({ person }: { person: Person }) {
   }, [person.color, person.size, bodyScene, headScene]);
 
   return <primitive object={group} position={person.position} />;
+}
+
+function PreviewPet({ pet, woodText }: { pet: PetConfig; woodText: string }) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  const { letterCenterX, letterCenterZ } = useMemo(() => {
+    const n = Math.min(Math.max(woodText.trim().length, 1), 9);
+    const step = THREE.MathUtils.degToRad(24);
+    let cx = 0, cz = 0;
+    for (let i = 0; i < n; i++) {
+      const angle = Math.PI / 2 - i * step;
+      cx += 5 * Math.cos(angle);
+      cz += 5 * Math.sin(angle);
+    }
+    return { letterCenterX: cx / n, letterCenterZ: cz / n };
+  }, [woodText]);
+
+  useFrame(() => {
+    if (groupRef.current) {
+      const worldPos = new THREE.Vector3();
+      groupRef.current.getWorldPosition(worldPos);
+      groupRef.current.lookAt(letterCenterX, worldPos.y, letterCenterZ);
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={pet.position as [number, number, number]}>
+      <PetModel type={pet.type as PetTypeId} color={pet.color} position={[0, 0, 0]} />
+    </group>
+  );
 }
 
 interface ConfirmationPreviewProps {
@@ -105,7 +135,7 @@ export function ConfirmationPreview({ persons, woodText, pets }: ConfirmationPre
         {bounds && <BaseLights cx={bounds.cx} cz={bounds.cz} radius={bounds.r} />}
         {bounds && <GlassDome cx={bounds.cx} cz={bounds.cz} radius={bounds.r} />}
         {pets.map((pet, i) => (
-          <PetModel key={i} type={pet.type as PetTypeId} color={pet.color} position={pet.position} />
+          <PreviewPet key={i} pet={pet} woodText={woodText} />
         ))}
 
         {persons.map((person, i) => (

@@ -1,11 +1,12 @@
 export const PRICES = {
-  base: 1400,      // base de madera + letras
-  perPerson: 50,   // por figura (sin importar tamaño)
-  perPet: 470,     // por mascota
+  base: 1550,           // base + cúpula + letras + hasta 2 integrantes
+  perExtraPerson: 100,  // por cada integrante a partir del 3ro
+  perPet: 470,          // por mascota
 } as const;
 
 export function calcTotal(numPersons: number, numPets = 0): number {
-  return PRICES.base + numPersons * PRICES.perPerson + numPets * PRICES.perPet;
+  const extraPersons = Math.max(0, numPersons - 2);
+  return PRICES.base + extraPersons * PRICES.perExtraPerson + numPets * PRICES.perPet;
 }
 
 export function formatPrice(amount: number): string {
